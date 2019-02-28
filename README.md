@@ -1,4 +1,4 @@
-# LandRegPriceInspector
+# InlineView
 
 An automated process which retrieves the latest UK Land registry prices of sold residential homes and makes pre-structured data available on a simple web page.  Utilises AWS cloud services.
 
