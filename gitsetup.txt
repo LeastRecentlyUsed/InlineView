@@ -1,7 +1,0 @@
-git clone git@github.com:LeastRecentlyUsed/InlineView.git
-
-http://landregistry.data.gov.uk/#linked-data
-http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-monthly-update-new-version.csv
-
-http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-2018.txt
-http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-complete.txt
