@@ -1,4 +1,4 @@
-package inlineviewfiles
+package main
 
 import (
 	"fmt"
