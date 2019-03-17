@@ -27,6 +27,8 @@ func fetchFileToDisk(url string, fileName string) error {
 	}
 	defer content.Body.Close()
 
+	deleteExistingFile(fileName)
+
 	fileHandle, createErr := os.Create(fileName)
 	if createErr != nil {
 		fmt.Println("Failed to create file", fileName)
