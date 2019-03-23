@@ -1,6 +1,7 @@
 package main
 
 import (
+	"InlineView/uklandregistry"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,11 +14,22 @@ var prices2018 = "pp-2018.txt"
 var diskLocation = "D:\\Downloads\\"
 
 func main() {
+	decodeUKLandRegistryData()
+}
+
+func getUKLandRegistryData() {
 	fmt.Println("Starting Land Registry Prices File Retrieval...")
 	fetchFileToDisk(contentLocation+pricesLatest, diskLocation+pricesLatest)
 	fmt.Println("Completed data retrieval.")
 }
 
+func decodeUKLandRegistryData() {
+	fmt.Println("Starting Land Registry file split into Post-Codes")
+	uklandregistry.SplitFileIntoPostcodes(diskLocation + pricesLatest)
+	fmt.Println("Completed file split.")
+}
+
+// fetchFileToDisk retrieves a file from a URL and saves it to a disk location
 func fetchFileToDisk(url string, fileName string) error {
 
 	content, getErr := http.Get(url)
