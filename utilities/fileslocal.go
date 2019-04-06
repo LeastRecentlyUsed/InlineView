@@ -49,7 +49,7 @@ func deleteExistingFile(fileName string) bool {
 	return true // no existing file
 }
 
-// doesFileExist returns true if the file exists otherwise false if not found or is a directory
+// doesFileExist returns true if the file exists
 func doesFileExist(fileName string) bool {
 	info, err := os.Stat(fileName)
 	if os.IsNotExist(err) {

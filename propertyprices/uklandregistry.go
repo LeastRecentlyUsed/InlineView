@@ -13,11 +13,6 @@ import (
 const csvDate = "2006-01-02 15:04"
 const noCode = "NOPOSTCODE"
 
-type storageRec struct {
-	Key   string
-	Value priceRec
-}
-
 type priceRec struct {
 	Postcode     string
 	Price        string
@@ -27,7 +22,7 @@ type priceRec struct {
 	NewBuild     string
 }
 
-type csvRecord struct {
+type csvRec struct {
 	Key          string
 	Price        string
 	Date         string
@@ -62,15 +57,26 @@ func SplitFileIntoPostcodes(filename string) error {
 		return csvErr
 	}
 
+	tx := 0
+	ix := 0
 	for _, line := range lineReader {
-		record := priceFormat(line)
-		_ = record
+		_, _ = priceFormat(line)
+		//utilities.AddPriceRecord(k, v)
+		if ix == 1000 {
+			tx = tx + ix
+			println(tx)
+			ix = 0
+		} else {
+			ix++
+		}
 	}
+
+	println("total records processed:", tx)
 	return csvErr
 }
 
 // priceFormat creates an InlineView specific property price record
-func priceFormat(line []string) storageRec {
+func priceFormat(line []string) (key string, value string) {
 	addr := formatAddress(line[7], line[8], line[9], line[10], line[11], line[12], line[13])
 
 	date, err := time.Parse(csvDate, line[2])
@@ -78,23 +84,22 @@ func priceFormat(line []string) storageRec {
 		fmt.Println("Failed to parse CSV date", err)
 	}
 
-	var rec storageRec
+	var rec priceRec
 
 	if line[3] != "" {
-		rec.Key = line[3]
+		rec.Postcode = line[3]
 	} else {
-		rec.Key = noCode
+		rec.Postcode = noCode
 	}
-	rec.Value.Postcode = line[3]
-	rec.Value.Price = line[1]
-	rec.Value.Date = date.Format("2006-01-02")
-	rec.Value.Address = addr
-	rec.Value.PropertyType = line[4]
-	rec.Value.NewBuild = line[5]
+	rec.Price = line[1]
+	rec.Date = date.Format("2006-01-02")
+	rec.Address = addr
+	rec.PropertyType = line[4]
+	rec.NewBuild = line[5]
 
 	r1, _ := json.Marshal(rec)
-	fmt.Println(string(r1))
-	return rec
+
+	return rec.Postcode, string(r1)
 }
 
 func formatAddress(paon string, saon string, street string, locality string, town string, district string, county string) string {
@@ -103,22 +108,22 @@ func formatAddress(paon string, saon string, street string, locality string, tow
 		address.WriteString(paon)
 	}
 	if len(strings.TrimSpace(saon)) > 0 {
-		address.WriteString(", " + saon)
+		address.WriteString(" " + saon)
 	}
 	if len(strings.TrimSpace(street)) > 0 {
 		address.WriteString(" " + street)
 	}
 	if len(strings.TrimSpace(locality)) > 0 {
-		address.WriteString(", " + locality)
+		address.WriteString(" " + locality)
 	}
 	if town != locality && len(strings.TrimSpace(town)) > 0 {
-		address.WriteString(", " + town)
+		address.WriteString(" " + town)
 	}
 	if district != town && len(strings.TrimSpace(district)) > 0 {
-		address.WriteString(", " + district)
+		address.WriteString(" " + district)
 	}
 	if county != district && len(strings.TrimSpace(county)) > 0 {
-		address.WriteString(", " + county)
+		address.WriteString(" " + county)
 	}
 
 	return address.String()
