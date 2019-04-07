@@ -1,6 +1,7 @@
 package propertyprices
 
 import (
+	"InlineView/utilities"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -52,16 +53,24 @@ func SplitFileIntoPostcodes(filename string) error {
 	}
 	defer f.Close()
 
-	lineReader, csvErr := csv.NewReader(f).ReadAll()
-	if csvErr != nil {
-		return csvErr
+	lineReader, err := csv.NewReader(f).ReadAll()
+	if err != nil {
+		return err
 	}
+
+	etcdclient, err := utilities.CreateEtcdClient()
+	if err != nil {
+		fmt.Println("Failed to create etcd client")
+		return err
+	}
+	defer etcdclient.Close()
 
 	tx := 0
 	ix := 0
 	for _, line := range lineReader {
-		_, _ = priceFormat(line)
-		//utilities.AddPriceRecord(k, v)
+		k, v := priceFormat(line)
+		utilities.AddPriceRecord(etcdclient, k, v)
+
 		if ix == 1000 {
 			tx = tx + ix
 			println(tx)
@@ -72,7 +81,7 @@ func SplitFileIntoPostcodes(filename string) error {
 	}
 
 	println("total records processed:", tx)
-	return csvErr
+	return err
 }
 
 // priceFormat creates an InlineView specific property price record
