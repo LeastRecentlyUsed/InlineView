@@ -17,6 +17,7 @@ func main() {
 func getUKLandRegistryData() {
 	fmt.Println("Starting Land Registry Prices File Retrieval...")
 	file := utilities.GetFullFilePath(pricesLatest)
+	fmt.Println("Writing file to:", file)
 	utilities.FetchFileToDisk(contentLocation+pricesLatest, file)
 	fmt.Println("Completed data retrieval.")
 }
@@ -24,6 +25,7 @@ func getUKLandRegistryData() {
 func decodeUKLandRegistryData() {
 	fmt.Println("Starting Land Registry file split into Post-Codes")
 	file := utilities.GetFullFilePath(pricesLatest)
+	fmt.Println("Reading file from:", file)
 	propertyprices.SplitFileIntoPostcodes(file)
 	fmt.Println("Completed file split.")
 }

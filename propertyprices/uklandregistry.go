@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -46,6 +47,23 @@ type csvRec struct {
 // into groups based on their postcode.
 func SplitFileIntoPostcodes(filename string) error {
 
+	pcSet, err := distinctIncodes(filename)
+	if err != nil {
+		return err
+	}
+
+	sort.Strings(pcSet)
+	// for _, v := range pcSet {
+	// 	fmt.Println(v)
+	// }
+	fmt.Println(len(pcSet), "distinct incodes")
+
+	return err
+}
+
+// ReadAllRecords scans through the file sequentially and reads/formats each record
+func ReadAllRecords(filename string) error {
+
 	f, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Failed to open file", filename)
@@ -58,18 +76,11 @@ func SplitFileIntoPostcodes(filename string) error {
 		return err
 	}
 
-	etcdclient, err := utilities.CreateEtcdClient()
-	if err != nil {
-		fmt.Println("Failed to create etcd client")
-		return err
-	}
-	defer etcdclient.Close()
-
 	tx := 0
 	ix := 0
 	for _, line := range lineReader {
-		k, v := priceFormat(line)
-		utilities.AddPriceRecord(etcdclient, k, v)
+		_, v := priceFormat(line)
+		utilities.AddPriceRecord(v)
 
 		if ix == 1000 {
 			tx = tx + ix
@@ -136,4 +147,40 @@ func formatAddress(paon string, saon string, street string, locality string, tow
 	}
 
 	return address.String()
+}
+
+// distinctPostcodes sequentially reads the file and returns a slice of unique
+// postcodes
+func distinctIncodes(filename string) ([]string, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		fmt.Println("Failed to open file", filename)
+		return nil, err
+	}
+	defer f.Close()
+
+	lineReader, err := csv.NewReader(f).ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	postCodes := make(map[string]bool)
+	distinctList := []string{}
+	var pc string
+
+	for _, line := range lineReader {
+		if line[3] != "" {
+			//pc = line[3]
+			pc = strings.Fields(line[3])[0]
+		} else {
+			pc = noCode
+		}
+
+		// after much pain with sort.SearchStrings, using a hash map to find unique values is less coding
+		if _, val := postCodes[pc]; !val {
+			postCodes[pc] = true
+			distinctList = append(distinctList, pc)
+		}
+	}
+	return distinctList, err
 }

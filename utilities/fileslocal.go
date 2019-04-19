@@ -5,9 +5,10 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
-const diskLocation = "D:\\Downloads\\"
+var diskLocation = workingDir()
 
 // FetchFileToDisk retrieves a file from a URL and saves it to a disk location
 func FetchFileToDisk(url string, fileName string) error {
@@ -62,4 +63,13 @@ func doesFileExist(fileName string) bool {
 // GetFullFilePath returns a file name with the correct OS path prefixed for this utility type
 func GetFullFilePath(filename string) string {
 	return diskLocation + filename
+}
+
+// workingDir finds the disk location of the current module (pwd)
+func workingDir() string {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		panic(err)
+	}
+	return dir
 }
