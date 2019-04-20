@@ -66,6 +66,7 @@ func SplitFileIntoPostcodes(filename string) error {
 		if err != nil {
 			return err
 		}
+		break
 	}
 
 	fmt.Println(len(pcSet), "distinct incodes")
@@ -98,7 +99,11 @@ func createIncodeStore(filename string, storeIncode string) error {
 		}
 	}
 
-	utilities.AddPriceStore(storeIncode, &store)
+	sizeMsg, err := utilities.AddPriceStore(storeIncode, &store)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Stored:", storeIncode, "in", sizeMsg)
 	return nil
 }
 
@@ -127,7 +132,7 @@ func priceFormat(line []string) (key string, value string) {
 
 	r1, _ := json.Marshal(rec)
 
-	return rec.Postcode, string(r1)
+	return rec.Postcode, string(r1) + "\n"
 }
 
 func formatAddress(paon string, saon string, street string, locality string, town string, district string, county string) string {

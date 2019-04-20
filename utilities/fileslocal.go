@@ -62,7 +62,11 @@ func doesFileExist(fileName string) bool {
 
 // GetFullFilePath returns a file name with the correct OS path prefixed for this utility type
 func GetFullFilePath(filename string) string {
-	return diskLocation + filename
+	dir, err := os.Getwd()
+	if err != nil {
+		dir = workingDir()
+	}
+	return dir + string(os.PathSeparator) + filename
 }
 
 // workingDir finds the disk location of the current module (pwd)

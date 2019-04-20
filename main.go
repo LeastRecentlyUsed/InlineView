@@ -4,6 +4,8 @@ import (
 	"InlineView/propertyprices"
 	"InlineView/utilities"
 	"fmt"
+	"os"
+	"strings"
 )
 
 var contentLocation = "http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/"
@@ -11,7 +13,14 @@ var pricesLatest = "pp-monthly-update-new-version.csv"
 var prices2018 = "pp-2018.txt"
 
 func main() {
-	decodeUKLandRegistryData()
+	args := os.Args
+	run := len(args) > 1
+
+	if run && strings.ToLower(args[1]) == "a" {
+		getUKLandRegistryData()
+	} else if run && strings.ToLower(args[1]) == "b" {
+		decodeUKLandRegistryData()
+	}
 }
 
 func getUKLandRegistryData() {
