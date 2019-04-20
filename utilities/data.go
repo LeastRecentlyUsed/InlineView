@@ -11,19 +11,18 @@ import (
 var timeout = 5 * time.Second
 
 // AddPriceStore stores a set of Price record in the database
-func AddPriceStore(key string, list *[]string) (string, error) {
+func AddPriceStore(key string, list *[]string) (sizeMsg string, err error) {
 	storename := key + ".dat"
-	filename := GetFullFilePath(storename)
 	var writeBytes int
 
-	fileHandle, err := os.Create(filename)
+	f, err := os.Create(storename)
 	if err != nil {
-		fmt.Println("Failed to create file", filename)
+		fmt.Println("Failed to create file", f)
 		return "", err
 	}
-	defer fileHandle.Close()
+	defer f.Close()
 
-	w := bufio.NewWriter(fileHandle)
+	w := bufio.NewWriter(f)
 	for _, rec := range *list {
 		n, err := w.WriteString(rec)
 		if err != nil {
@@ -32,8 +31,9 @@ func AddPriceStore(key string, list *[]string) (string, error) {
 		writeBytes = writeBytes + n
 	}
 	w.Flush()
+	sizeMsg = sizeAsString(writeBytes)
 
-	return sizeAsString(writeBytes), nil
+	return
 }
 
 func sizeAsString(size int) string {

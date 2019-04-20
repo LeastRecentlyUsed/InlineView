@@ -22,14 +22,13 @@ func FetchFileToDisk(url string, fileName string) error {
 
 	deleteExistingFile(fileName)
 
-	fileHandle, createErr := os.Create(fileName)
-	if createErr != nil {
-		fmt.Println("Failed to create file", fileName)
-		return createErr
+	f, err := CreateFile(fileName)
+	if err != nil {
+		return err
 	}
-	defer fileHandle.Close()
+	defer f.Close()
 
-	_, copyErr := io.Copy(fileHandle, content.Body)
+	_, copyErr := io.Copy(f, content.Body)
 	if copyErr != nil {
 		fmt.Println("Failed to copy URL content to File")
 		return copyErr
@@ -37,12 +36,33 @@ func FetchFileToDisk(url string, fileName string) error {
 	return copyErr
 }
 
+// OpenFile created to remove repeated code.  Returns a pointer that is the file handle of an existing file
+func OpenFile(filename string) (fileHandle *os.File, err error) {
+	dataFile := getFullFilePath(filename)
+	fileHandle, err = os.Open(dataFile)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// CreateFile created to remove repeated code.  Returns a point to the file handle of the new file
+func CreateFile(filename string) (fileHandle *os.File, err error) {
+	dataFile := getFullFilePath(filename)
+	fileHandle, err = os.Create(dataFile)
+	if err != nil {
+		return
+	}
+	return
+}
+
 // deleteExistingFile removes a previously created file of the same name from the disk
 func deleteExistingFile(fileName string) bool {
-	if doesFileExist(fileName) {
-		err := os.Remove(fileName)
+	delFile := getFullFilePath(fileName)
+	if doesFileExist(delFile) {
+		err := os.Remove(delFile)
 		if err != nil {
-			fmt.Println("Failed to delete existing file", fileName, "Error:", err)
+			fmt.Println("Failed to delete existing file", delFile, "Error:", err)
 			return false
 		}
 		return true // remove ok
@@ -60,8 +80,8 @@ func doesFileExist(fileName string) bool {
 	return !info.IsDir()
 }
 
-// GetFullFilePath returns a file name with the correct OS path prefixed for this utility type
-func GetFullFilePath(filename string) string {
+// getFullFilePath returns a file name with the correct OS path prefixed for this utility type
+func getFullFilePath(filename string) string {
 	dir, err := os.Getwd()
 	if err != nil {
 		dir = workingDir()

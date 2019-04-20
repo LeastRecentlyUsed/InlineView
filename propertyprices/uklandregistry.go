@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 	"time"
@@ -74,10 +73,9 @@ func SplitFileIntoPostcodes(filename string) error {
 }
 
 // createIncodeStore builds a sub-set of price records for one incode and stores the values
-func createIncodeStore(filename string, storeIncode string) error {
-	f, err := os.Open(filename)
+func createIncodeStore(filename string, storeIncode string) (err error) {
+	f, err := utilities.OpenFile(filename)
 	if err != nil {
-		fmt.Println("Failed to open file", filename)
 		return err
 	}
 	defer f.Close()
@@ -87,7 +85,6 @@ func createIncodeStore(filename string, storeIncode string) error {
 		return err
 	}
 
-	//store := make(map[string]string)
 	store := []string{}
 
 	for _, line := range lineReader {
@@ -119,11 +116,6 @@ func priceFormat(line []string) (key string, value string) {
 	var rec priceRec
 
 	rec.Postcode = determinePostcode(line[3], fullcode)
-	// if line[3] != "" {
-	// 	rec.Postcode = line[3]
-	// } else {
-	// 	rec.Postcode = noCode
-	// }
 	rec.Price = line[1]
 	rec.Date = date.Format("2006-01-02")
 	rec.Address = addr
@@ -165,9 +157,8 @@ func formatAddress(paon string, saon string, street string, locality string, tow
 // distinctPostcodes sequentially reads the file and returns a slice of unique
 // postcodes
 func distinctIncodes(filename string) ([]string, error) {
-	f, err := os.Open(filename)
+	f, err := utilities.OpenFile(filename)
 	if err != nil {
-		fmt.Println("Failed to open file", filename)
 		return nil, err
 	}
 	defer f.Close()
@@ -193,7 +184,9 @@ func distinctIncodes(filename string) ([]string, error) {
 	return distinctList, err
 }
 
-// determineIncodeFromPostcode splits the postcode string on a space and returns the first element
+// determinePostcode
+// incode = splits the postcode string on a space and returns the first element
+// fullcode = returns space trimmed full postcode
 func determinePostcode(postcode string, codeStyle postCodeFormat) string {
 	if postcode == "" {
 		return "NOPOSTCODE"
