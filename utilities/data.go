@@ -7,8 +7,8 @@ import (
 
 var timeout = 5 * time.Second
 
-// AddPriceRecord stores a single price record in the database
-func AddPriceRecord(rec string) bool {
-	fmt.Println(rec)
+// AddPriceStore stores a set of Price record in the database
+func AddPriceStore(key string, list *[]string) bool {
+	fmt.Println(key, len(*list))
 	return true
 }

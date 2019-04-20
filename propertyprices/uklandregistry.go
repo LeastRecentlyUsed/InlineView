@@ -13,7 +13,14 @@ import (
 
 // use magic reference date values for parsing.
 const csvDate = "2006-01-02 15:04"
-const noCode = "NOPOSTCODE"
+
+type postCodeFormat int
+
+const (
+	incode postCodeFormat = 1 + iota
+	fullcode
+	outcode
+)
 
 type priceRec struct {
 	Postcode     string
@@ -24,7 +31,7 @@ type priceRec struct {
 	NewBuild     string
 }
 
-type csvRec struct {
+type inputRec struct {
 	Key          string
 	Price        string
 	Date         string
@@ -44,7 +51,7 @@ type csvRec struct {
 }
 
 // SplitFileIntoPostcodes takes a downloaded UK Land Registry file and splits the property price records
-// into groups based on their postcode.
+// into groups (or local stores) based on their postcode.
 func SplitFileIntoPostcodes(filename string) error {
 
 	pcSet, err := distinctIncodes(filename)
@@ -53,17 +60,20 @@ func SplitFileIntoPostcodes(filename string) error {
 	}
 
 	sort.Strings(pcSet)
-	// for _, v := range pcSet {
-	// 	fmt.Println(v)
-	// }
-	fmt.Println(len(pcSet), "distinct incodes")
 
-	return err
+	for _, v := range pcSet {
+		err = createIncodeStore(filename, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	fmt.Println(len(pcSet), "distinct incodes")
+	return nil
 }
 
-// ReadAllRecords scans through the file sequentially and reads/formats each record
-func ReadAllRecords(filename string) error {
-
+// createIncodeStore builds a sub-set of price records for one incode and stores the values
+func createIncodeStore(filename string, storeIncode string) error {
 	f, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Failed to open file", filename)
@@ -76,23 +86,20 @@ func ReadAllRecords(filename string) error {
 		return err
 	}
 
-	tx := 0
-	ix := 0
-	for _, line := range lineReader {
-		_, v := priceFormat(line)
-		utilities.AddPriceRecord(v)
+	//store := make(map[string]string)
+	store := []string{}
 
-		if ix == 1000 {
-			tx = tx + ix
-			println(tx)
-			ix = 0
-		} else {
-			ix++
+	for _, line := range lineReader {
+		thisIncode := determinePostcode(line[3], incode)
+
+		if thisIncode == storeIncode {
+			_, v := priceFormat(line)
+			store = append(store, v)
 		}
 	}
 
-	println("total records processed:", tx)
-	return err
+	utilities.AddPriceStore(storeIncode, &store)
+	return nil
 }
 
 // priceFormat creates an InlineView specific property price record
@@ -106,11 +113,12 @@ func priceFormat(line []string) (key string, value string) {
 
 	var rec priceRec
 
-	if line[3] != "" {
-		rec.Postcode = line[3]
-	} else {
-		rec.Postcode = noCode
-	}
+	rec.Postcode = determinePostcode(line[3], fullcode)
+	// if line[3] != "" {
+	// 	rec.Postcode = line[3]
+	// } else {
+	// 	rec.Postcode = noCode
+	// }
 	rec.Price = line[1]
 	rec.Date = date.Format("2006-01-02")
 	rec.Address = addr
@@ -166,21 +174,27 @@ func distinctIncodes(filename string) ([]string, error) {
 
 	postCodes := make(map[string]bool)
 	distinctList := []string{}
-	var pc string
+	var code string
 
 	for _, line := range lineReader {
-		if line[3] != "" {
-			//pc = line[3]
-			pc = strings.Fields(line[3])[0]
-		} else {
-			pc = noCode
-		}
+		code = determinePostcode(line[3], incode)
 
-		// after much pain with sort.SearchStrings, using a hash map to find unique values is less coding
-		if _, val := postCodes[pc]; !val {
-			postCodes[pc] = true
-			distinctList = append(distinctList, pc)
+		// after issues using sort.SearchStrings, using a hash map to find unique values is less coding
+		if _, val := postCodes[code]; !val {
+			postCodes[code] = true
+			distinctList = append(distinctList, code)
 		}
 	}
 	return distinctList, err
+}
+
+// determineIncodeFromPostcode splits the postcode string on a space and returns the first element
+func determinePostcode(postcode string, codeStyle postCodeFormat) string {
+	if postcode == "" {
+		return "NOPOSTCODE"
+	}
+	if codeStyle == fullcode {
+		return strings.TrimSpace(postcode)
+	}
+	return strings.Fields(postcode)[0]
 }
