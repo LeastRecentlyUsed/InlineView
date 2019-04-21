@@ -1,8 +1,8 @@
 package utilities
 
 import (
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,14 +13,16 @@ var diskLocation = workingDir()
 // FetchFileToDisk retrieves a file from a URL and saves it to a disk location
 func FetchFileToDisk(url string, fileName string) error {
 
-	content, getErr := http.Get(url)
-	if getErr != nil {
-		fmt.Println("Failed to fetch url", url)
-		return getErr
+	content, err := http.Get(url)
+	if err != nil {
+		return err
 	}
 	defer content.Body.Close()
 
-	deleteExistingFile(fileName)
+	err = deleteExistingFile(fileName)
+	if err != nil {
+		return err
+	}
 
 	f, err := CreateFile(fileName)
 	if err != nil {
@@ -28,12 +30,11 @@ func FetchFileToDisk(url string, fileName string) error {
 	}
 	defer f.Close()
 
-	_, copyErr := io.Copy(f, content.Body)
-	if copyErr != nil {
-		fmt.Println("Failed to copy URL content to File")
-		return copyErr
+	_, err = io.Copy(f, content.Body)
+	if err != nil {
+		return err
 	}
-	return copyErr
+	return nil
 }
 
 // OpenFile created to remove repeated code.  Returns a pointer that is the file handle of an existing file
@@ -56,18 +57,26 @@ func CreateFile(filename string) (fileHandle *os.File, err error) {
 	return
 }
 
+// AppendFile opens a file for write. May be existing file allowing appends.
+func AppendFile(filename string) (fileHandle *os.File, err error) {
+	dataFile := getFullFilePath(filename)
+	fileHandle, err = os.OpenFile(dataFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		return
+	}
+	return
+}
+
 // deleteExistingFile removes a previously created file of the same name from the disk
-func deleteExistingFile(fileName string) bool {
+func deleteExistingFile(fileName string) error {
 	delFile := getFullFilePath(fileName)
 	if doesFileExist(delFile) {
 		err := os.Remove(delFile)
 		if err != nil {
-			fmt.Println("Failed to delete existing file", delFile, "Error:", err)
-			return false
+			return err
 		}
-		return true // remove ok
 	}
-	return true // no existing file
+	return nil
 }
 
 // doesFileExist returns true if the file exists
@@ -93,7 +102,7 @@ func getFullFilePath(filename string) string {
 func workingDir() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		panic(err)
+		log.Panicln(err)
 	}
 	return dir
 }

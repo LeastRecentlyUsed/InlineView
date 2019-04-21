@@ -4,7 +4,7 @@ import (
 	"InlineView/utilities"
 	"encoding/csv"
 	"encoding/json"
-	"fmt"
+	"log"
 	"sort"
 	"strings"
 	"time"
@@ -51,11 +51,11 @@ type inputRec struct {
 
 // SplitFileIntoPostcodes takes a downloaded UK Land Registry file and splits the property price records
 // into groups (or local stores) based on their postcode.
-func SplitFileIntoPostcodes(filename string) error {
+func SplitFileIntoPostcodes(filename string) {
 
 	pcSet, err := distinctIncodes(filename)
 	if err != nil {
-		return err
+		log.Panic(err)
 	}
 
 	sort.Strings(pcSet)
@@ -63,26 +63,27 @@ func SplitFileIntoPostcodes(filename string) error {
 	for _, v := range pcSet {
 		err = createIncodeStore(filename, v)
 		if err != nil {
-			return err
+			log.Panic(err)
 		}
 		break
 	}
 
-	fmt.Println(len(pcSet), "distinct incodes")
-	return nil
+	log.Println(len(pcSet), "distinct incodes")
 }
 
 // createIncodeStore builds a sub-set of price records for one incode and stores the values
 func createIncodeStore(filename string, storeIncode string) (err error) {
 	f, err := utilities.OpenFile(filename)
 	if err != nil {
-		return err
+		log.Println("createIncodeStore: Unable to open a file", filename)
+		return
 	}
 	defer f.Close()
 
 	lineReader, err := csv.NewReader(f).ReadAll()
 	if err != nil {
-		return err
+		log.Println("createIncodeStore: cannot read csv", filename)
+		return
 	}
 
 	store := []string{}
@@ -98,9 +99,10 @@ func createIncodeStore(filename string, storeIncode string) (err error) {
 
 	sizeMsg, err := utilities.AddPriceStore(storeIncode, &store)
 	if err != nil {
+		log.Println("createIncodeStore: cannot AddPriceStore for", storeIncode)
 		return err
 	}
-	fmt.Println("Stored:", storeIncode, "in", sizeMsg)
+	log.Println("Stored:", storeIncode, "in", sizeMsg)
 	return nil
 }
 
@@ -110,7 +112,8 @@ func priceFormat(line []string) (key string, value string) {
 
 	date, err := time.Parse(csvDate, line[2])
 	if err != nil {
-		fmt.Println("Failed to parse CSV date", err)
+		log.Println("priceFormat: failed to parse CSV date", err)
+		date = date.AddDate(1900, 01, 01)
 	}
 
 	var rec priceRec
@@ -159,12 +162,14 @@ func formatAddress(paon string, saon string, street string, locality string, tow
 func distinctIncodes(filename string) ([]string, error) {
 	f, err := utilities.OpenFile(filename)
 	if err != nil {
+		log.Println("distinctIncodes: Unable to open a file", filename)
 		return nil, err
 	}
 	defer f.Close()
 
 	lineReader, err := csv.NewReader(f).ReadAll()
 	if err != nil {
+		log.Println("distinctIncodes: cannot read csv", filename)
 		return nil, err
 	}
 
