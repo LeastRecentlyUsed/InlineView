@@ -157,8 +157,7 @@ func formatAddress(paon string, saon string, street string, locality string, tow
 	return address.String()
 }
 
-// distinctPostcodes sequentially reads the file and returns a slice of unique
-// postcodes
+// distinctIncodes sequentially reads the file and returns a slice of unique incodes
 func distinctIncodes(filename string) ([]string, error) {
 	f, err := utilities.OpenFile(filename)
 	if err != nil {

@@ -34,10 +34,11 @@ func FetchFileToDisk(url string, fileName string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-// OpenFile created to remove repeated code.  Returns a pointer that is the file handle of an existing file
+// OpenFile created to remove repeated code.  Returns a pointer to the handle of an existing file
 func OpenFile(filename string) (fileHandle *os.File, err error) {
 	dataFile := getFullFilePath(filename)
 	fileHandle, err = os.Open(dataFile)
@@ -47,7 +48,7 @@ func OpenFile(filename string) (fileHandle *os.File, err error) {
 	return
 }
 
-// CreateFile created to remove repeated code.  Returns a point to the file handle of the new file
+// CreateFile created to remove repeated code.  Returns a point to the handle of the new file
 func CreateFile(filename string) (fileHandle *os.File, err error) {
 	dataFile := getFullFilePath(filename)
 	fileHandle, err = os.Create(dataFile)
@@ -98,11 +99,11 @@ func getFullFilePath(filename string) string {
 	return dir + string(os.PathSeparator) + filename
 }
 
-// workingDir finds the disk location of the current module (pwd)
+// workingDir finds the disk location of the current module (pwd).  If no dir can be found, exit with fatal error.
 func workingDir() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		log.Panicln(err)
+		log.Fatalln(err)
 	}
 	return dir
 }
