@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 )
 
 var contentLocation = "http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/"
@@ -16,7 +15,7 @@ var prices2018 = "pp-2018.txt"
 
 func main() {
 	// set logging on
-	f, err := utilities.AppendFile(logFileName())
+	f, err := utilities.AppendFile(utilities.LogFileName())
 	if err != nil {
 		fmt.Println("Unable to create log file in main")
 	}
@@ -32,6 +31,8 @@ func main() {
 	} else if run && strings.ToLower(args[1]) == "b" {
 		decodeUKLandRegistryData()
 	}
+
+	utilities.LogMemStats()
 }
 
 func getUKLandRegistryData() {
@@ -44,10 +45,4 @@ func decodeUKLandRegistryData() {
 	log.Println("Starting Land Registry file split into Post-Codes")
 	propertyprices.SplitFileIntoPostcodes(pricesLatest)
 	log.Println("Completed file split.")
-}
-
-func logFileName() string {
-	today := time.Now()
-	logDate := today.Format("2006-01-02")
-	return logDate + "-inlineview.log"
 }

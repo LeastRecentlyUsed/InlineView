@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -31,20 +30,7 @@ func AddPriceStore(key string, list *[]string) (sizeMsg string, err error) {
 		writeBytes = writeBytes + n
 	}
 	w.Flush()
-	sizeMsg = sizeAsString(writeBytes)
+	sizeMsg = SizeAsString(writeBytes)
 
 	return
-}
-
-func sizeAsString(size int) string {
-	if size < 1024 {
-		return strconv.Itoa(size) + " bytes"
-	}
-	if size > 1024 && size < 1024*1024 {
-		return strconv.Itoa(size/1024) + " Kbytes"
-	}
-	if size > 1024*1024 && size < 1024*1024*1024 {
-		return strconv.Itoa(size/1024/1024) + "  Mbytes"
-	}
-	return strconv.Itoa(size/1024/1024/1024) + " Gbytes"
 }
