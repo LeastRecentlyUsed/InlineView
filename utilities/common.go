@@ -1,6 +1,8 @@
 package utilities
 
 import (
+	"crypto/sha1"
+	"encoding/base64"
 	"log"
 	"runtime"
 	"strconv"
@@ -34,4 +36,13 @@ func SizeAsString(size int) string {
 		return strconv.Itoa(size/1024/1024) + " Mbytes"
 	}
 	return strconv.Itoa(size/1024/1024/1024) + " Gbytes"
+}
+
+// HashDataString performs a hash function on some price record values in order to produce a unique data key
+func HashDataString(record string) (shaString string) {
+	hasher := sha1.New()
+	hasher.Write([]byte(record))
+	// base64 converts the raw bytes from the hash function into a string
+	shaString = base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	return
 }

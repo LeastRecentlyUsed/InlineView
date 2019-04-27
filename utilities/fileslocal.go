@@ -48,7 +48,7 @@ func OpenFile(filename string) (fileHandle *os.File, err error) {
 	return
 }
 
-// CreateFile created to remove repeated code.  Returns a point to the handle of the new file
+// CreateFile created to remove repeated code.  Returns a pointer to the handle of the new file
 func CreateFile(filename string) (fileHandle *os.File, err error) {
 	dataFile := getFullFilePath(filename)
 	fileHandle, err = os.Create(dataFile)

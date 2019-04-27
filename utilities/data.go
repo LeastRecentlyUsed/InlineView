@@ -3,18 +3,17 @@ package utilities
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"time"
 )
 
 var timeout = 5 * time.Second
 
-// AddPriceStore stores a set of Price record in the database
+// AddPriceStore stores a set of Price records in the database
 func AddPriceStore(key string, list *[]string) (sizeMsg string, err error) {
 	storename := key + ".dat"
 	var writeBytes int
 
-	f, err := os.Create(storename)
+	f, err := CreateFile(storename)
 	if err != nil {
 		fmt.Println("Failed to create file", f)
 		return "", err

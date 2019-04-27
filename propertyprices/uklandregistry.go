@@ -21,6 +21,11 @@ const (
 	outcode
 )
 
+type priceContainer struct {
+	priceKey string
+	priceRec priceRec
+}
+
 type priceRec struct {
 	Postcode     string
 	Price        string
@@ -60,15 +65,15 @@ func SplitFileIntoPostcodes(filename string) {
 
 	sort.Strings(pcSet)
 
-	for _, v := range pcSet {
-		err = createIncodeStore(filename, v)
+	for _, incode := range pcSet {
+		err = createIncodeStore(filename, incode)
 		if err != nil {
 			log.Panic(err)
 		}
 		break
 	}
 
-	log.Println(len(pcSet), "distinct incodes")
+	log.Println(len(pcSet), "distinct incode stores created")
 }
 
 // createIncodeStore builds a sub-set of price records for one incode and stores the values
@@ -116,18 +121,20 @@ func priceFormat(line []string) (key string, value string) {
 		date = date.AddDate(1900, 01, 01)
 	}
 
-	var rec priceRec
+	var rec priceContainer
 
-	rec.Postcode = determinePostcode(line[3], fullcode)
-	rec.Price = line[1]
-	rec.Date = date.Format("2006-01-02")
-	rec.Address = addr
-	rec.PropertyType = line[4]
-	rec.NewBuild = line[5]
+	rec.priceRec.Postcode = determinePostcode(line[3], fullcode)
+	rec.priceRec.Price = line[1]
+	rec.priceRec.Date = date.Format("2006-01-02")
+	rec.priceRec.Address = addr
+	rec.priceRec.PropertyType = line[4]
+	rec.priceRec.NewBuild = line[5]
 
+	hashKey := utilities.HashDataString(rec.priceRec.Postcode + rec.priceRec.Price + rec.priceRec.Date + rec.priceRec.Address)
+	rec.priceKey = hashKey
 	r1, _ := json.Marshal(rec)
 
-	return rec.Postcode, string(r1) + "\n"
+	return rec.priceKey, string(r1) + "\n"
 }
 
 func formatAddress(paon string, saon string, street string, locality string, town string, district string, county string) string {
