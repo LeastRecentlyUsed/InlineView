@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+// StoreData is the required elements for storing price records (hash of the ID, the ID and the actual data record)
+type StoreData struct {
+	Hash       string
+	Identifier string
+	Data       string
+}
+
 // LogFileName formats and returns the name of the log file to use in this execution
 func LogFileName() string {
 	today := time.Now()

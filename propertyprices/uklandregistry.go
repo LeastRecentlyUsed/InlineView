@@ -22,17 +22,17 @@ const (
 )
 
 type priceContainer struct {
-	priceKey string
-	priceRec priceRec
+	PriceKey string   `json:"pricekey"`
+	PriceRec priceRec `json:"pricedata"`
 }
 
 type priceRec struct {
-	Postcode     string
-	Price        string
-	Date         string
-	Address      string
-	PropertyType string
-	NewBuild     string
+	Postcode     string `json:"postcode"`
+	Price        string `json:"price"`
+	Date         string `json:"date"`
+	Address      string `json:"address"`
+	PropertyType string `json:"propertytype"`
+	NewBuild     string `json:"newbuild"`
 }
 
 type inputRec struct {
@@ -58,14 +58,14 @@ type inputRec struct {
 // into groups (or local stores) based on their postcode.
 func SplitFileIntoPostcodes(filename string) {
 
-	pcSet, err := distinctIncodes(filename)
+	incodeSet, err := distinctIncodes(filename)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	sort.Strings(pcSet)
+	sort.Strings(incodeSet)
 
-	for _, incode := range pcSet {
+	for _, incode := range incodeSet {
 		err = createIncodeStore(filename, incode)
 		if err != nil {
 			log.Panic(err)
@@ -73,7 +73,7 @@ func SplitFileIntoPostcodes(filename string) {
 		break
 	}
 
-	log.Println(len(pcSet), "distinct incode stores created")
+	log.Println(len(incodeSet), "distinct incode stores created")
 }
 
 // createIncodeStore builds a sub-set of price records for one incode and stores the values
@@ -91,14 +91,15 @@ func createIncodeStore(filename string, storeIncode string) (err error) {
 		return
 	}
 
-	store := []string{}
+	store := []utilities.StoreData{}
 
 	for _, line := range lineReader {
 		thisIncode := determinePostcode(line[3], incode)
 
 		if thisIncode == storeIncode {
-			_, v := priceFormat(line)
-			store = append(store, v)
+			var aRec utilities.StoreData
+			aRec.Hash, aRec.Identifier, aRec.Data = priceFormat(line)
+			store = append(store, aRec)
 		}
 	}
 
@@ -113,7 +114,7 @@ func createIncodeStore(filename string, storeIncode string) (err error) {
 }
 
 // priceFormat creates an InlineView specific property price record
-func priceFormat(line []string) (key string, value string) {
+func priceFormat(line []string) (hash string, postcode string, data string) {
 	addr := formatAddress(line[7], line[8], line[9], line[10], line[11], line[12], line[13])
 
 	date, err := time.Parse(csvDate, line[2])
@@ -124,18 +125,18 @@ func priceFormat(line []string) (key string, value string) {
 
 	var rec priceContainer
 
-	rec.priceRec.Postcode = determinePostcode(line[3], fullcode)
-	rec.priceRec.Price = line[1]
-	rec.priceRec.Date = date.Format("2006-01-02")
-	rec.priceRec.Address = addr
-	rec.priceRec.PropertyType = line[4]
-	rec.priceRec.NewBuild = line[5]
+	rec.PriceRec.Postcode = determinePostcode(line[3], fullcode)
+	rec.PriceRec.Price = line[1]
+	rec.PriceRec.Date = date.Format("2006-01-02")
+	rec.PriceRec.Address = addr
+	rec.PriceRec.PropertyType = line[4]
+	rec.PriceRec.NewBuild = line[5]
 
-	hashKey := utilities.HashDataString(rec.priceRec.Postcode + rec.priceRec.Price + rec.priceRec.Date + rec.priceRec.Address)
-	rec.priceKey = hashKey
+	hashKey := utilities.HashDataString(rec.PriceRec.Postcode + rec.PriceRec.Price + rec.PriceRec.Date + rec.PriceRec.Address)
+	rec.PriceKey = hashKey
 	r1, _ := json.Marshal(rec)
 
-	return rec.priceKey, string(r1) + "\n"
+	return rec.PriceKey, rec.PriceRec.Postcode, string(r1) + "\n"
 }
 
 func formatAddress(paon string, saon string, street string, locality string, town string, district string, county string) string {
@@ -187,7 +188,7 @@ func distinctIncodes(filename string) ([]string, error) {
 	for _, line := range lineReader {
 		code = determinePostcode(line[3], incode)
 
-		// after issues using sort.SearchStrings, using a hash map to find unique values is less coding
+		// use a map to find unique postcode (incode) values
 		if _, val := postCodes[code]; !val {
 			postCodes[code] = true
 			distinctList = append(distinctList, code)
