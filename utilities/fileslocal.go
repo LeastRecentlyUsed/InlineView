@@ -2,6 +2,7 @@ package utilities
 
 import (
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -62,6 +63,16 @@ func CreateFile(filename string) (fileHandle *os.File, err error) {
 func AppendFile(filename string) (fileHandle *os.File, err error) {
 	dataFile := getFullFilePath(filename)
 	fileHandle, err = os.OpenFile(dataFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// ReadFile opens a file and returns a byte array of the contents.
+func ReadFile(filename string) (data []byte, err error) {
+	dataFile := getFullFilePath(filename)
+	data, err = ioutil.ReadFile(dataFile)
 	if err != nil {
 		return
 	}

@@ -2,18 +2,31 @@ package utilities
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"log"
+	"os"
 	"time"
 )
 
 var timeout = 5 * time.Second
 
+type indexEntry struct {
+	key      string
+	postcode string
+}
+
+var keys = indexEntry{}
+
 // AddPriceStore stores a set of Price records in the database
 func AddPriceStore(key string, list *[]string) (sizeMsg string, err error) {
-	storename := key + ".dat"
+	storeName := key + ".dat"
+	indexName := key + ".idx"
 	var writeBytes int
 
-	f, err := CreateFile(storename)
+	readIndex(indexName)
+
+	f, err := CreateFile(storeName)
 	if err != nil {
 		fmt.Println("Failed to create file", f)
 		return "", err
@@ -32,4 +45,17 @@ func AddPriceStore(key string, list *[]string) (sizeMsg string, err error) {
 	sizeMsg = SizeAsString(writeBytes)
 
 	return
+}
+
+func readIndex(indexName string) {
+	data, err := ReadFile(indexName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Println("Incode index file not found ", indexName)
+			return
+		}
+	}
+	// this expects a 2-part json structure {pricekey, postcode}
+	err = json.Unmarshal([]byte(data), &keys)
+
 }

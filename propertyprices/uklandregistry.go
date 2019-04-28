@@ -109,6 +109,7 @@ func createIncodeStore(filename string, storeIncode string) (err error) {
 	}
 	log.Println("Stored:", storeIncode, "in", sizeMsg)
 	return nil
+
 }
 
 // priceFormat creates an InlineView specific property price record
