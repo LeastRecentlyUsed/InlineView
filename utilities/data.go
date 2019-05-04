@@ -11,7 +11,7 @@ import (
 
 var timeout = 5 * time.Second
 
-// priceKeys is a map of "[priceKey]postcode" used to determine there are duplicates being created.
+// priceKeys is a map of "[priceKey]postcode" used to determine if there are duplicates being created.
 var priceKeys = map[string]string{}
 var keysMapSize int
 
@@ -25,7 +25,7 @@ func AddPriceStore(storeName string, recList *[]StoreData) (sizeMsg string, err 
 
 	f, err := AppendFile(storeFile)
 	if err != nil {
-		log.Println("Failed to create file", f)
+		log.Println("Failed to open/create file for Appends", f)
 		return "", err
 	}
 	defer f.Close()
