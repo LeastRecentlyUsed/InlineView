@@ -33,7 +33,7 @@ func AddPriceStore(storeName string, recList *[]StoreData) (sizeMsg string, err 
 	w := bufio.NewWriter(f)
 	for _, rec := range *recList {
 		if !foundIndex(rec.Hash, rec.Identifier) {
-			n, err := w.WriteString(rec.Data)
+			n, err := w.WriteString(rec.Data + "\n")
 			if err != nil {
 				return "", err
 			}

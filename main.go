@@ -1,7 +1,7 @@
 package main
 
 import (
-	"InlineView/propertyprices"
+	"InlineView/ukland"
 	"InlineView/utilities"
 	"fmt"
 	"log"
@@ -43,6 +43,6 @@ func getUKLandRegistryData() {
 
 func decodeUKLandRegistryData() {
 	log.Println("Starting Land Registry file split into Post-Codes")
-	propertyprices.SplitFileIntoPostcodes(pricesLatest)
+	ukland.SplitFileIntoPostcodes(pricesLatest)
 	log.Println("Completed file split.")
 }

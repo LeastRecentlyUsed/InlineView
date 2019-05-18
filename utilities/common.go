@@ -36,10 +36,10 @@ func SizeAsString(size int) string {
 	if size < 1024 {
 		return strconv.Itoa(size) + " bytes"
 	}
-	if size > 1024 && size < 1024*1024 {
+	if size >= 1024 && size < 1024*1024 {
 		return strconv.Itoa(size/1024) + " Kbytes"
 	}
-	if size > 1024*1024 && size < 1024*1024*1024 {
+	if size >= 1024*1024 && size < 1024*1024*1024 {
 		return strconv.Itoa(size/1024/1024) + " Mbytes"
 	}
 	return strconv.Itoa(size/1024/1024/1024) + " Gbytes"
