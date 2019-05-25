@@ -1,8 +1,18 @@
 package ukland
 
 import (
+	"os"
 	"testing"
 )
+
+//TestMain is the controlling test runner and can execute package setup and tear-down functionality.
+func TestMain(m *testing.M) {
+	println("Beginning UKLAND test runner.")
+	res := m.Run()
+	println("Test runner completed.")
+
+	os.Exit(res)
+}
 
 func TestPriceFormatCreatesValidStoreData(t *testing.T) {
 	line := []string{"{8355F008-C0A9-55C5-E053-6B04A8C0D090}", "102000", "2003-11-25 00:00", "WA5 2PG", "S", "N", "L", "39", "", "ROTHAY DRIVE", "PENKETH", "WARRINGTON", "WARRINGTON", "WARRINGTON", "A", "A"}
@@ -60,22 +70,22 @@ func TestFormatAddressBuildsValidAddressLineWithDuplicateValues(t *testing.T) {
 }
 
 func TestCanCorrectlyDeterminePostcode(t *testing.T) {
-	resNoCode := determinePostcode("", incode)
-	if resNoCode != "NOPOSTCODE" {
-		t.Log("Failed to determine NOPOSTCODE")
-		t.Fail()
+	// create a table-driven test using a collection with an anonymous struct
+	var postcodeTable = []struct {
+		in1 string
+		in2 postCodeFormat
+		out string
+		msg string
+	}{
+		{"", incode, "NOPOSTCODE", "Failed to determine NOPOSTCODE:"},
+		{"MK17", incode, "MK17", "Failed to determine INCODE:"},
+		{"MK17 9AU", fullcode, "MK17 9AU", "Failed to determine FULLCODE:"},
 	}
 
-	resIncode := determinePostcode("incode outcode", incode)
-	if resIncode != "incode" {
-		t.Log("Failed to determine INCODE:", resIncode)
-		t.Fail()
+	for _, testEntry := range postcodeTable {
+		res := determinePostcode(testEntry.in1, testEntry.in2)
+		if res != testEntry.out {
+			t.Error(testEntry.msg, res)
+		}
 	}
-
-	resFullcode := determinePostcode("  MK17 9AU ", fullcode)
-	if resFullcode != "MK17 9AU" {
-		t.Log("Failed to determine FULLCODE:", resFullcode)
-		t.Fail()
-	}
-
 }
