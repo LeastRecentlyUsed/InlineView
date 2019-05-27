@@ -75,3 +75,20 @@ func TestFoundIndexReturnsValidBool(t *testing.T) {
 		}
 	}
 }
+
+func TestAddPriceStoreCreatesCorrectNumberOfEntries(t *testing.T) {
+	// add price store accepts a collection of price records and returns a count of records created
+	data := []StoreData{
+		{Hash: "xxx", Identifier: "MK17 9AU", Data: "Data String 1"},
+		{Hash: "yyy", Identifier: "MK17 8AQ", Data: "Data String 2"},
+		{Hash: "zzz", Identifier: "SE14 9XX", Data: "Data String 3"},
+	}
+	expected := 3
+	storeName := "MK17"
+
+	res, _ := AddPriceStore(storeName, &data)
+
+	if res != expected {
+		t.Error("Invalid number entries created in price store. Expected", expected, "but got:", res)
+	}
+}
